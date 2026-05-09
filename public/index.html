@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Story Seçisi — Canlı turnuva oylama sistemi">
+  <title>🎬 Story Seçisi</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- ═══ NAVİGASYON ═══ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-brand" onclick="navigate('main')"><span class="site-logo"></span> Story Seçisi</div>
+    <div class="nav-links">
+      <span id="navAdminBadge" style="display:none; background: rgba(124,58,237,0.2); color: #c482ff; padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.75rem; font-weight: bold; align-self: center; margin-right: 0.5rem;">👑 Yayıncı Girişi Aktif</span>
+      <button class="nav-btn active" data-view="main" onclick="navigate('main')">🏠 Ana Sayfa</button>
+      <button class="nav-btn" data-view="upload" onclick="navigate('upload')">📸 Fotoğraf Yükle</button>
+      <button class="nav-btn" data-view="admin" onclick="navigate('admin')">🔧 Yayıncı Paneli</button>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- VIEW 1: ANA SAYFA — TURNUVA                       -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="view active" id="view-main">
+
+    <!-- Waiting State -->
+    <div id="waitingState" class="waiting-state">
+      <div class="icon">🎬</div>
+      <h2>Story Seçisi</h2>
+      <p>Turnuva henüz başlamadı. Yayıncı turnuvayı başlattığında burası canlanacak!</p>
+    </div>
+
+    <!-- Tournament Active -->
+    <div id="tournamentView" style="display:none;">
+      <header class="header">
+        <h1><span class="site-logo-lg"></span> Story Seçisi</h1>
+        <p class="subtitle">Hangisi yayın storisi olsun?</p>
+        <div class="round-info">
+          <div>Tur <span id="roundNum">1</span> / <span id="totalRounds">4</span></div>
+          <div>Maç <span id="matchNum">1</span> / <span id="totalMatches">4</span></div>
+        </div>
+      </header>
+
+      <div class="arena" id="arena">
+        <div class="photo-card left" id="cardLeft">
+          <div class="image-wrapper">
+            <img id="imgLeft" src="" alt="Fotoğraf 1">
+          </div>
+          <div class="card-footer">
+            <div class="vote-label">⬅ SOL — Chat'te "1" yaz</div>
+            <div class="vote-count"><span id="voteCountLeft">0</span> oy (<span id="votePercentLeft">0</span>%)</div>
+            <div class="vote-bar-container">
+              <div class="vote-bar-fill" id="voteBarLeft" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vs-divider">
+          <div class="vs-badge">VS</div>
+        </div>
+
+        <div class="photo-card right" id="cardRight">
+          <div class="image-wrapper">
+            <img id="imgRight" src="" alt="Fotoğraf 2">
+          </div>
+          <div class="card-footer">
+            <div class="vote-label">Chat'te "2" yaz — SAĞ ➡</div>
+            <div class="vote-count"><span id="voteCountRight">0</span> oy (<span id="votePercentRight">0</span>%)</div>
+            <div class="vote-bar-container">
+              <div class="vote-bar-fill" id="voteBarRight" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vote-stream-section">
+        <h3>💬 Canlı Oylama Akışı</h3>
+        <div class="vote-stream" id="voteStream">
+          <div style="color:var(--text-muted);font-size:0.8rem;">Henüz oy yok...</div>
+        </div>
+      </div>
+
+      <div class="bracket-section">
+        <h3>🏅 Turnuva Tablosu</h3>
+        <div class="bracket-visual" id="bracketVisual"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- VIEW 2: FOTOĞRAF YÜKLEME                          -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="view" id="view-upload">
+    <div class="upload-container">
+      <div style="font-size:3rem;margin-bottom:0.5rem;">📸</div>
+      <h1>Fotoğraf Öner</h1>
+      <p class="desc">Yayın storisi için fotoğraf önerinde bulun! Fotoğraflar yayıncı tarafından kontrol edildikten sonra turnuvaya eklenecektir.</p>
+
+      <div class="upload-zone" id="viewerUploadZone">
+        <div class="icon">📁</div>
+        <p>Fotoğrafları sürükleyin veya tıklayarak seçin</p>
+        <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem;">JPG, PNG, GIF, WebP — Maks 10MB</p>
+        <input type="file" id="viewerFileInput" multiple accept="image/*">
+      </div>
+
+      <div id="viewerPreviewArea" class="preview-grid" style="display:none;"></div>
+
+      <button class="btn btn-primary" id="btnViewerSubmit" style="display:none;margin-top:1rem;width:100%;justify-content:center;">
+        📤 Fotoğrafları Gönder
+      </button>
+
+      <div class="upload-success" id="viewerSuccessMsg">
+        ✅ Fotoğraflar başarıyla gönderildi! Yayıncı onayladıktan sonra turnuvaya eklenecek.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- VIEW 3: YAYINCI PANELİ                            -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="view" id="view-admin">
+
+    <!-- Login -->
+    <div id="loginScreen" class="login-screen">
+      <div class="login-box">
+        <div style="font-size:2.5rem;margin-bottom:0.5rem;">🔐</div>
+        <h2>Yayıncı Paneli</h2>
+        <p>Turnuvayı yönetmek için giriş yapın</p>
+        <div id="loginError" class="login-error" style="display:none;"></div>
+        <input type="password" id="passwordInput" class="input" placeholder="Şifre girin...">
+        <button class="btn btn-primary" id="btnLogin">Giriş Yap</button>
+      </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" style="display:none;">
+      <div class="admin-container">
+        <div class="admin-header">
+          <h1>🔧 Yayıncı Paneli</h1>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <div id="chatStatus" class="status-badge disconnected">
+              <div class="status-dot"></div>
+              <span>Bağlı Değil</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kick Chat -->
+        <div class="panel">
+          <div class="panel-title">💬 Kick Chat Bağlantısı</div>
+          <div style="display:flex;gap:0.5rem;">
+            <input type="text" id="channelSlug" class="input" placeholder="Kick kanal adı (slug)..." style="flex:1;">
+            <button class="btn btn-primary" id="btnChatConnect">Bağlan</button>
+            <button class="btn btn-danger btn-sm" id="btnChatDisconnect" style="display:none;">Kes</button>
+          </div>
+          <div id="chatConnectInfo" class="chat-connect-info" style="display:none;margin-top:0.6rem;font-size:0.8rem;color:var(--text-secondary);"></div>
+        </div>
+
+        <!-- 📷 FOTOĞRAF KONTROL PANELİ (YENİ) -->
+        <div class="panel" id="photoReviewPanel">
+          <div class="panel-title">
+            📷 Fotoğraf Kontrol
+            <span class="pending-badge" id="pendingBadge" style="display:none;">0</span>
+          </div>
+          <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem;">
+            İzleyicilerin gönderdiği fotoğraflar buraya düşer. Uygun olanları onaylayarak turnuva listesine ekleyebilirsiniz.
+          </p>
+
+          <!-- Toplu işlem butonları -->
+          <div id="pendingActions" style="display:none;margin-bottom:1rem;">
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+              <button class="btn btn-success btn-sm" id="btnApproveAll">✅ Tümünü Onayla</button>
+              <button class="btn btn-danger btn-sm" id="btnRejectAll">🗑️ Tümünü Reddet</button>
+            </div>
+          </div>
+
+          <!-- Bekleyen fotoğraflar grid -->
+          <div id="pendingPhotosGrid" class="review-grid">
+            <div class="review-empty">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">📭</div>
+              <div>Bekleyen fotoğraf yok</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem;">İzleyiciler fotoğraf gönderdiğinde buraya düşecek</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fotoğraf Yükleme (Admin direkt) -->
+        <div class="panel">
+          <div class="panel-title">📸 Fotoğraf Yükleme (Direkt)</div>
+          <div class="upload-zone" id="adminUploadZone">
+            <div class="icon">📁</div>
+            <p>Fotoğrafları sürükleyin veya tıklayarak seçin</p>
+            <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem;">JPG, PNG, GIF, WebP — Maks 10MB</p>
+            <input type="file" id="adminFileInput" multiple accept="image/*">
+          </div>
+          <div id="adminUploadPreview" class="preview-grid" style="display:none;"></div>
+          <button class="btn btn-primary" id="btnAdminUpload" style="display:none;margin-top:0.8rem;">Yükle</button>
+
+          <div class="panel-title" style="margin-top:1.5rem;">📋 Onaylanmış Fotoğraflar (<span id="photoCount">0</span>)</div>
+          <div class="photo-grid" id="photoGrid"></div>
+        </div>
+
+        <!-- Turnuva Kontrolü -->
+        <div class="panel">
+          <div class="panel-title">🎮 Turnuva Kontrolü</div>
+          <div id="tournamentControls">
+            <button class="btn btn-primary" id="btnStart">🚀 Turnuvayı Başlat</button>
+            <button class="btn btn-danger btn-sm" id="btnReset" style="display:none;">🔄 Sıfırla</button>
+          </div>
+
+          <div id="activeMatchControl" style="display:none;margin-top:1rem;">
+            <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.5rem;">
+              Tur <span id="aRound">1</span>/<span id="aTotalRounds">4</span> — Maç <span id="aMatch">1</span>/<span id="aTotalMatches">4</span>
+            </div>
+            <div class="match-preview" id="matchPreview"></div>
+            <div style="display:flex;gap:0.5rem;margin-top:0.8rem;align-items:center;">
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:0.8rem;color:var(--text-secondary);">Sol: <strong id="aVote1">0</strong> oy</div>
+              </div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">VS</div>
+              <div style="flex:1;text-align:center;">
+                <div style="font-size:0.8rem;color:var(--text-secondary);">Sağ: <strong id="aVote2">0</strong> oy</div>
+              </div>
+            </div>
+            <div class="match-control">
+              <button class="btn btn-left" id="btnSelectLeft">⬅ Sol Seçildi</button>
+              <button class="btn btn-right" id="btnSelectRight">Sağ Seçildi ➡</button>
+            </div>
+          </div>
+
+          <div id="winnerDisplay" style="display:none;margin-top:1rem;text-align:center;">
+            <div style="font-size:1.5rem;margin-bottom:0.5rem;">🏆</div>
+            <div style="font-weight:700;">Turnuva Tamamlandı!</div>
+            <div id="winnerName" style="color:var(--text-secondary);font-size:0.85rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ WINNER OVERLAY ═══ -->
+  <div class="winner-overlay hidden" id="winnerOverlay">
+    <h2>🏆 YAYIN STORİSİ SEÇİLDİ!</h2>
+    <img id="winnerImg" src="" alt="Kazanan">
+    <p style="color:var(--text-secondary);font-size:1.1rem;" id="winnerText"></p>
+    <button class="btn btn-primary" id="btnCloseWinner">Kapat</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>

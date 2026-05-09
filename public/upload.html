@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📸 Fotoğraf Yükle — Storisi Seçici</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="upload-container">
+    <div style="font-size:3rem;margin-bottom:0.5rem;">📸</div>
+    <h1>Fotoğraf Öner</h1>
+    <p class="desc">Yayın storisi için fotoğraf önerinde bulun!</p>
+
+    <div class="upload-zone" id="uploadZone">
+      <div class="icon">📁</div>
+      <p>Fotoğrafları sürükleyin veya tıklayarak seçin</p>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.3rem;">JPG, PNG, GIF, WebP — Maks 10MB</p>
+      <input type="file" id="fileInput" multiple accept="image/*" onchange="handleFiles(this.files)">
+    </div>
+
+    <div id="previewArea" class="preview-grid" style="display:none;"></div>
+
+    <button class="btn btn-primary" id="btnSubmit" onclick="submitPhotos()" style="display:none;margin-top:1rem;width:100%;justify-content:center;">
+      📤 Fotoğrafları Gönder
+    </button>
+
+    <div class="upload-success" id="successMsg">
+      ✅ Fotoğraflar başarıyla gönderildi! Yayıncı onayladıktan sonra turnuvaya eklenecek.
+    </div>
+  </div>
+
+  <script src="/js/upload.js"></script>
+</body>
+</html>
