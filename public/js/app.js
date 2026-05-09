@@ -381,8 +381,11 @@ btnAdminUpload.addEventListener('click', () => {
   const fd = new FormData();
   adminSelectedFiles.forEach(f => fd.append('photos', f));
   fd.append('uploadedBy', 'Yayıncı');
+  btnAdminUpload.disabled = true;
+  btnAdminUpload.textContent = 'Yükleniyor...';
+
   fetch('/api/photos/upload', { method: 'POST', body: fd, headers: { 'x-admin-token': adminToken } })
-    .then(r => r.json())
+    .then(r => r.json().catch(() => ({ error: 'Sunucu yanıtı okunamadı. Fotoğraf boyutu 10MB limitinden büyük olabilir.' })))
     .then(data => {
       if (data.success) {
         renderPhotos(data.photos);
@@ -390,7 +393,14 @@ btnAdminUpload.addEventListener('click', () => {
         document.getElementById('adminUploadPreview').style.display = 'none';
         btnAdminUpload.style.display = 'none';
         adminFileInput.value = '';
+      } else {
+        alert('Yükleme başarısız: ' + data.error);
       }
+    })
+    .catch(err => alert('Ağ veya sunucu hatası: ' + err.message))
+    .finally(() => {
+      btnAdminUpload.disabled = false;
+      btnAdminUpload.textContent = 'Yükle';
     });
 });
 
@@ -563,7 +573,7 @@ btnViewerSubmit.addEventListener('click', () => {
   btnViewerSubmit.disabled = true;
   btnViewerSubmit.textContent = 'Yükleniyor...';
   fetch('/api/photos/upload', { method: 'POST', body: fd })
-    .then(r => r.json())
+    .then(r => r.json().catch(() => ({ error: 'Sunucu yanıtı okunamadı. Fotoğraf boyutu 10MB limitinden büyük olabilir.' })))
     .then(data => {
       if (data.success) {
         document.getElementById('viewerSuccessMsg').style.display = '';
@@ -571,6 +581,8 @@ btnViewerSubmit.addEventListener('click', () => {
         btnViewerSubmit.style.display = 'none';
         viewerSelectedFiles = [];
         viewerFileInput.value = '';
+      } else {
+        alert('Yükleme başarısız: ' + data.error);
       }
     })
     .finally(() => {

@@ -118,40 +118,49 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // ── Fotoğraf Yükleme (İzleyici → Pending) ────────────────
-app.post('/api/photos/upload', upload.array('photos', 20), (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: 'Dosya yüklenmedi' });
-  }
-
-  const uploadedBy = req.body.uploadedBy || 'İzleyici';
-  const isAdmin = req.headers['x-admin-token'] === ADMIN_PASSWORD;
-
-  const photos = req.files.map(file => {
-    const photo = {
-      id: `photo_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      filename: file.filename,
-      originalName: file.originalname,
-      uploadedBy,
-      uploadedAt: Date.now()
-    };
-
-    if (isAdmin) {
-      // Admin yüklerse direkt onaylanır ve turnuvaya eklenir
-      approvedPhotos.push(photo);
-      tournament.addPhoto(photo);
-    } else {
-      // İzleyici yüklerse onay bekler
-      pendingPhotos.push(photo);
+app.post('/api/photos/upload', (req, res) => {
+  upload.array('photos', 20)(req, res, function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ error: 'Dosya boyutu çok büyük veya sınır aşıldı (Maks: 10MB).' });
+    } else if (err) {
+      console.error('Upload error:', err);
+      return res.status(500).json({ error: 'Sunucu hatası: ' + err.message });
     }
 
-    return photo;
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'Dosya formatı desteklenmiyor (Sadece JPG, PNG, GIF, WEBP) veya dosya seçilmedi.' });
+    }
+
+    const uploadedBy = req.body.uploadedBy || 'İzleyici';
+    const isAdmin = req.headers['x-admin-token'] === ADMIN_PASSWORD;
+
+    const photos = req.files.map(file => {
+      const photo = {
+        id: `photo_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        filename: file.filename,
+        originalName: file.originalname,
+        uploadedBy,
+        uploadedAt: Date.now()
+      };
+
+      if (isAdmin) {
+        // Admin yüklerse direkt onaylanır ve turnuvaya eklenir
+        approvedPhotos.push(photo);
+        tournament.addPhoto(photo);
+      } else {
+        // İzleyici yüklerse onay bekler
+        pendingPhotos.push(photo);
+      }
+
+      return photo;
+    });
+
+    // Durumu yayınla
+    io.emit('photos:updated', tournament.getPhotos());
+    io.emit('pending:updated', pendingPhotos);
+
+    res.json({ success: true, photos: tournament.getPhotos(), pending: pendingPhotos });
   });
-
-  // Durumu yayınla
-  io.emit('photos:updated', tournament.getPhotos());
-  io.emit('pending:updated', pendingPhotos);
-
-  res.json({ success: true, photos: tournament.getPhotos(), pending: pendingPhotos });
 });
 
 // ── Bekleyen Fotoğrafları Listele ────────────────────────
