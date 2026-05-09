@@ -211,7 +211,7 @@ class KickChatIntegration {
       const content = (data.content || data.message || '').trim();
       const username = data.sender?.username || data.sender?.slug || data.user?.username || 'anonim';
 
-      console.log(`💬 [${username}]: ${content}`);
+      // console.log(`💬 [${username}]: ${content}`);
 
       // Sadece "1" veya "2" mesajlarını dinle
       if (content === '1' || content === '2') {

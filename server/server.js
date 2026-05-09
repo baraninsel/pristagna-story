@@ -65,12 +65,24 @@ let kickChat = null;
 let pendingPhotos = [];   // Onay bekleyen fotoğraflar
 let approvedPhotos = [];  // Onaylanmış fotoğraflar (turnuvaya katılabilir)
 
+let voteUpdateTimeout = null;
+
 function initChat() {
   kickChat = new KickChatIntegration((username, choice) => {
     const result = tournament.castVote(username, choice);
     if (result) {
-      io.emit('vote:update', result);
-      io.emit('state:update', tournament.getState());
+      // Throttle: Yüksek trafik anında saniyede maks 5 kez güncelleme yolla
+      if (!voteUpdateTimeout) {
+        voteUpdateTimeout = setTimeout(() => {
+          const currentMatch = tournament.getCurrentMatch();
+          io.emit('vote:update', {
+            matchId: result.matchId,
+            votes: currentMatch ? currentMatch.votes : { '1': 0, '2': 0 },
+            voteEntry: result.voteEntry // Akışa sadece son oyu düşür (DOM kasmasını da önler)
+          });
+          voteUpdateTimeout = null;
+        }, 200);
+      }
     }
   });
 
